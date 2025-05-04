@@ -1,0 +1,30 @@
+
+body {
+    font-family: Tahoma, sans-serif;
+    direction: rtl;
+    background: #f0f8ff;
+    text-align: center;
+    padding: 20px;
+}
+header {
+    background: #d1c4e9;
+    padding: 10px;
+    border-radius: 10px;
+}
+nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #4a148c;
+    font-weight: bold;
+}
+section {
+    margin: 20px 0;
+    padding: 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+img {
+    width: 200px;
+    border-radius: 10px;
+}
