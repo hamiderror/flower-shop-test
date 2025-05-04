@@ -1,36 +1,422 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
 
-<!DOCTYPE html>
-<html lang="fa">
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>فروشگاه گل محمد</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>گل‌فروشی دیان</title>
+  <meta name="description" content="گل‌فروشی دیان، بهترین مقصد برای خرید گل‌های آپارتمانی، فضای سبز، گلدان‌های لوکس و بذرهای باکیفیت با تخفیف‌های ویژه.">
+  <meta name="keywords" content="گل‌فروشی، دیان، گل آپارتمانی، گلدان لوکس، بذر، تخفیفات گل">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>🌸 فروشگاه گل محمد 🌸</h1>
-        <nav>
-            <a href="#">گلدان‌ها</a>
-            <a href="#">گل‌های آپارتمانی</a>
-            <a href="#">گل‌های فضای باز</a>
-        </nav>
-    </header>
-    <main>
-        <section>
-            <h2>گلدان سرامیکی</h2>
-            <img src="images/pot.jpg" alt="گلدان">
-            <p>گلدان شیک برای زیبایی فضای منزل</p>
-        </section>
-        <section>
-            <h2>گل آپارتمانی کاکتوس</h2>
-            <img src="images/cactus.jpg" alt="کاکتوس">
-            <p>کاکتوس مقاوم و زیبا مناسب فضای داخلی</p>
-        </section>
-        <section>
-            <h2>درختچه فضای باز</h2>
-            <img src="images/tree.jpg" alt="درختچه">
-            <p>درختچه مناسب حیاط و باغچه</p>
-        </section>
-    </main>
+  <video class="bg-video" autoplay muted loop>
+    <source src="https://assets.mixkit.co/videos/preview/mixkit-close-up-of-flowers-4189-large.mp4" type="video/mp4">
+  </video>
+  <div class="bg-particles"></div>
+  <div id="particles"></div>
+
+  <!-- Header -->
+  <header class="header text-white p-8 sticky top-0 z-50">
+    <div class="container mx-auto flex justify-between items-center">
+      <div class="flex items-center">
+        <div class="logo w-28 h-28 bg-white rounded-full flex items-center justify-center text-green-900 font-bold text-4xl">دیان</div>
+        <h1 class="text-6xl font-bold mr-6" style="font-family: 'Playfair Display', serif;">گل‌فروشی دیان</h1>
+      </div>
+      <nav class="flex space-x-14 items-center">
+        <a href="#home" class="nav-link text-2xl hover:text-yellow-100">خانه</a>
+        <a href="#products" class="nav-link text-2xl hover:text-yellow-100">محصولات</a>
+        <a href="#discounts" class="nav-link text-2xl hover:text-yellow-100">تخفیفات</a>
+        <a href="#plant-doctor" class="nav-link text-2xl hover:text-yellow-100">دکتر گل</a>
+        <a href="#appointment" class="nav-link text-2xl hover:text-yellow-100">رزرو وقت</a>
+        <a href="#contact" class="nav-link text-2xl hover:text-yellow-100">تماس</a>
+        <div class="cart-icon" onclick="showCart()">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <span class="cart-count" id="cartCount">0</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Welcome Section -->
+  <section id="home" class="py-56 text-center bg-gradient-welcome parallax relative section-animate">
+    <div class="container mx-auto relative z-10">
+      <h2 class="text-9xl font-bold text-white mb-10 drop-shadow-2xl" style="font-family: 'Playfair Display', serif;">دیان، رویای سبز!</h2>
+      <p class="text-4xl text-yellow-100 mb-14">جهانی از گل‌ها و گیاهان برای خانه و قلب شما</p>
+      <a href="#products" class="glow-button text-green-900 px-14 py-6 rounded-full font-semibold text-2xl">شروع خرید</a>
+    </div>
+  </section>
+
+  <!-- Instagram Banner -->
+  <section class="py-16 instagram-banner text-white text-center section-animate">
+    <div class="container mx-auto">
+      <h3 class="text-5xl font-bold mb-8" style="font-family: 'Playfair Display', serif;">دیان را در اینستاگرام دنبال کنید!</h3>
+      <p class="text-2xl mb-10">با ما همراه باشید برای جدیدترین محصولات و نکات مراقبت از گیاهان</p>
+      <div class="slider p-6">
+        <div class="mx-4"><img src="https://images.unsplash.com/photo-1617055453186-314ff4ebedee?q=80&w=2070&auto=format&fit=crop" alt="پست اینستا" class="w-72 h-72 object-cover rounded-2xl" loading="lazy"></div>
+        <div class="mx-4"><img src="https://images.unsplash.com/photo-1598032895397-b947244972c2?q=80&w=2070&auto=format&fit=crop" alt="پست اینستا" class="w-72 h-72 object-cover rounded-2xl" loading="lazy"></div>
+        <div class="mx-4"><img src="https://images.unsplash.com/photo-1603046891887-1533e8e0b49d?q=80&w=2070&auto=format&fit=crop" alt="پست اینستا" class="w-72 h-72 object-cover rounded-2xl" loading="lazy"></div>
+      </div>
+      <a href="https://instagram.com/dianflowers" target="_blank" class="glow-button text-green-900 px-14 py-5 rounded-full font-semibold mt-8">فالو کنید</a>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section id="featured" class="py-32 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">محصولات منتخب</h2>
+      <div class="slider p-6">
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6">
+          <img src="https://images.unsplash.com/photo-1611095561950-1a89b8a33e97?q=80&w=2070&auto=format&fit=crop" alt="گلدان سفالی" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">گلدان سفالی لوکس</p>
+          <button onclick="addToCart('گلدان سفالی لوکس', 150000, 'https://images.unsplash.com/photo-1611095561950-1a89b8a33e97?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">افزودن به سبد خرید</button>
+        </div>
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6">
+          <img src="https://images.unsplash.com/photo-1610986004638-c15a58e0ebec?q=80&w=2070&auto=format&fit=crop" alt="پوتوس طلایی" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">پوتوس طلایی</p>
+          <button onclick="addToCart('پوتوس طلایی', 80000, 'https://images.unsplash.com/photo-1610986004638-c15a58e0ebec?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">افزودن به سبد خرید</button>
+        </div>
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6">
+          <img src="https://images.unsplash.com/photo-1593693397690-362cb9666fc2?q=80&w=2070&auto=format&fit=crop" alt="رز هلندی" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">رز هلندی</p>
+          <button onclick="addToCart('رز هلندی', 50000, 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">افزودن به سبد خرید</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Discounts Section -->
+  <section id="discounts" class="py-32 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">تخفیفات ویژه</h2>
+      <div class="slider p-6">
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6 relative">
+          <div class="discount-badge">30% تخفیف</div>
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop" alt="گلدان سرامیکی" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">گلدان سرامیکی مدرن</p>
+          <p class="text-center text-lg text-gray-700 mt-2">فقط تا <span class="countdown-timer" data-end="2025-05-10T23:59:59"></span></p>
+          <button onclick="addToCart('گلدان سرامیکی مدرن', 140000, 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">خرید با تخفیف</button>
+        </div>
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6 relative">
+          <div class="discount-badge">20% تخفیف</div>
+          <img src="https://images.unsplash.com/photo-1597086853960-658a496a6d56?q=80&w=2070&auto=format&fit=crop" alt="سانسوریا" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">سانسوریا مخملی</p>
+          <p class="text-center text-lg text-gray-700 mt-2">فقط تا <span class="countdown-timer" data-end="2025-05-08T23:59:59"></span></p>
+          <button onclick="addToCart('سانسوریا مخملی', 80000, 'https://images.unsplash.com/photo-1597086853960-658a496a6d56?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">خرید با تخفیف</button>
+        </div>
+        <div class="product-card p-10 rounded-2xl shadow-lg mx-6 relative">
+          <div class="discount-badge">25% تخفیف</div>
+          <img src="https://images.unsplash.com/photo-1617055453186-314ff4ebedee?q=80&w=2070&auto=format&fit=crop" alt="بذر آفتابگردان" class="w-full h-64 object-cover rounded-xl mb-6" loading="lazy">
+          <p class="text-center text-2xl font-semibold text-green-900">بذر آفتابگردان</p>
+          <p class="text-center text-lg text-gray-700 mt-2">فقط تا <span class="countdown-timer" data-end="2025-05-12T23:59:59"></span></p>
+          <button onclick="addToCart('بذر آفتابگردان', 15000, 'https://images.unsplash.com/photo-1617055453186-314ff4ebedee?q=80&w=2070&auto=format&fit=crop')" class="glow-button text-green-900 px-8 py-4 rounded-full font-semibold mt-6 w-full">خرید با تخفیف</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section id="products" class="py-32 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">همه محصولات</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-14">
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showCategory('pots')">
+          <img src="https://images.unsplash.com/photo-1611095561950-1a89b8a33e97?q=80&w=2070&auto=format&fit=crop" alt="گلدان‌ها" class="w-full h-72 object-cover" loading="lazy">
+          <div class="p-12">
+            <h3 class="text-4xl font-bold text-green-900">گلدان‌ها</h3>
+            <p class="text-gray-700 text-lg">زیبایی طبیعت در گلدان‌های لوکس</p>
+          </div>
+        </div>
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showCategory('indoor')">
+          <img src="https://images.unsplash.com/photo-1610986004638-c15a58e0ebec?q=80&w=2070&auto=format&fit=crop" alt="گل‌های آپارتمانی" class="w-full h-72 object-cover" loading="lazy">
+          <div class="p-12">
+            <h3 class="text-4xl font-bold text-green-900">گل‌های آپارتمانی</h3>
+            <p class="text-gray-700 text-lg">طراوت سبز برای خانه شما</p>
+          </div>
+        </div>
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showCategory('outdoor')">
+          <img src="https://images.unsplash.com/photo-1593693397690-362cb9666fc2?q=80&w=2070&auto=format&fit=crop" alt="گل‌های فضای سبز" class="w-full h-72 object-cover" loading="lazy">
+          <div class="p-12">
+            <h3 class="text-4xl font-bold text-green-900">گل‌های فضای سبز</h3>
+            <p class="text-gray-700 text-lg">باغچه‌ای پر از رنگ و زندگی</p>
+          </div>
+        </div>
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showCategory('seeds')">
+          <img src="https://images.unsplash.com/photo-1589994187840-8224d47ae9e6?q=80&w=2070&auto=format&fit=crop" alt="بذرها" class="w-full h-72 object-cover" loading="lazy">
+          <div class="p-12">
+            <h3 class="text-4xl font-bold text-green-900">بذرها</h3>
+            <p class="text-gray-700 text-lg">کاشت آینده‌ای سبز با بذرهای باکیفیت</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Plant Doctor Section -->
+  <section id="plant-doctor" class="py-32 bg-green-50 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">دکتر گل دیان</h2>
+      <p class="text-2xl text-center mb-14 text-gray-700">با مراقبت حرفه‌ای، گیاهان‌تان همیشه سرزنده و سالم خواهند بود!</p>
+      <div class="slider p-6">
+        <div class="p-10 bg-white rounded-3xl shadow-xl mx-6">
+          <img src="https://images.unsplash.com/photo-1610986004638-c15a58e0ebec?q=80&w=2070&auto=format&fit=crop" alt="قبل و بعد" class="w-full h-56 object-cover rounded-xl mb-6" loading="lazy">
+          <h3 class="text-3xl font-bold mb-4 text-green-900">مشاوره تخصصی</h3>
+          <p class="text-gray-700">بهترین روش‌های نگهداری گیاهان را از ما بیاموزید.</p>
+        </div>
+        <div class="p-10 bg-white rounded-3xl shadow-xl mx-6">
+          <img src="https://images.unsplash.com/photo-1597086853960-658a496a6d56?q=80&w=2070&auto=format&fit=crop" alt="قبل و بعد" class="w-full h-56 object-cover rounded-xl mb-6" loading="lazy">
+          <h3 class="text-3xl font-bold mb-4 text-green-900">تشخیص و درمان</h3>
+          <p class="text-gray-700">مشکلات گیاهان را با راه‌حل‌های علمی برطرف کنید.</p>
+        </div>
+        <div class="p-10 bg-white rounded-3xl shadow-xl mx-6">
+          <img src="https://images.unsplash.com/photo-1610986004638-c15a58e0ebec?q=80&w=2070&auto=format&fit=crop" alt="قبل و بعد" class="w-full h-56 object-cover rounded-xl mb-6" loading="lazy">
+          <h3 class="text-3xl font-bold mb-4 text-green-900">بازدید حضوری</h3>
+          <p class="text-gray-700">متخصصان ما برای بررسی گیاهان به شما سر می‌زنند.</p>
+        </div>
+      </div>
+      <div class="text-center mt-12">
+        <a href="#appointment" class="glow-button text-green-900 px-14 py-5 rounded-full font-semibold text-xl">رزرو وقت مشاوره</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Appointment Section -->
+  <section id="appointment" class="py-32 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">رزرو وقت ویزیت</h2>
+      <p class="text-2xl text-center mb-14 text-gray-700">برای مشاوره حضوری یا بازدید، همین حالا وقت خود را رزرو کنید.</p>
+      <div class="max-w-lg mx-auto bg-white p-12 rounded-3xl shadow-xl">
+        <form>
+          <div class="mb-10">
+            <label class="block text-xl font-semibold text-green-900 mb-3">نام و نام خانوادگی</label>
+            <input type="text" class="w-full p-5 rounded-xl border border-gray-300 focus:outline-none focus:border-green-500 transition-all" required>
+          </div>
+          <div class="mb-10">
+            <label class="block text-xl font-semibold text-green-900 mb-3">شماره تماس</label>
+            <input type="tel" class="w-full p-5 rounded-xl border border-gray-300 focus:outline-none focus:border-green-500 transition-all" required>
+          </div>
+          <div class="mb-10">
+            <label class="block text-xl font-semibold text-green-900 mb-3">تاریخ و زمان</label>
+            <input type="datetime-local" class="w-full p-5 rounded-xl border border-gray-300 focus:outline-none focus:border-green-500 transition-all" required>
+          </div>
+          <button type="submit" class="glow-button text-green-900 px-10 py-5 rounded-full font-semibold w-full">ارسال درخواست</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section id="contact" class="py-32 bg-green-50 section-animate">
+    <div class="container mx-auto">
+      <h2 class="text-7xl font-bold text-center mb-24 text-green-900" style="font-family: 'Playfair Display', serif;">تماس با دیان</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-14">
+        <div class="p-10">
+          <h3 class="text-4xl font-bold mb-10 text-green-900">راه‌های ارتباطی</h3>
+          <div class="flex items-center mb-8">
+            <svg class="w-10 h-10 text-green-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+            <p class="text-xl text-gray-700">آدرس: تهران، خیابان بهار، پلاک ۱۲۳</p>
+          </div>
+          <div class="flex items-center mb-8">
+            <svg class="w-10 h-10 text-green-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+            <p class="text-xl text-gray-700">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+          </div>
+          <div class="flex items-center mb-8">
+            <svg class="w-10 h-10 text-green-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            <p class="text-xl text-gray-700">ایمیل: info@dianflowers.ir</p>
+          </div>
+          <div class="flex items-center">
+            <svg class="w-10 h-10 text-green-600 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"></path></svg>
+            <p class="text-xl text-gray-700">اینستاگرام: <a href="https://instagram.com/dianflowers" target="_blank" class="text-green-600 hover:underline">@dianflowers</a></p>
+          </div>
+        </div>
+        <div class="p-10">
+          <h3 class="text-4xl font-bold mb-10 text-green-900">مکان ما</h3>
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509825!2d144.9537363153167!3d-37.81627997975159!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d9d9b0b0b0b0!2sMelbourne%20VIC%2C%20Australia!5e0!3m2!1sen!2sus!4v1635781234567!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="header text-white p-16 text-center section-animate">
+    <p class="text-2xl">© 2025 گل‌فروشی دیان. تمامی حقوق محفوظ است.</p>
+  </footer>
+
+  <!-- Products Modal -->
+  <div id="productsModal" class="fixed inset-0 bg-black bg-opacity-95 hidden flex items-center justify-center z-50">
+    <div class="products-modal p-16 rounded-3xl max-w-6xl w-full shadow-2xl relative">
+      <button onclick="closeProductsModal()" class="back-arrow">
+        <svg class="w-8 h-8 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <h3 id="productsModalTitle" class="text-5xl font-bold mb-16 text-green-900" style="font-family: 'Playfair Display', serif;"></h3>
+      <div class="filter-panel">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div>
+            <label class="block text-lg font-semibold text-green-900 mb-2">جستجو</label>
+            <input type="text" id="searchInput" class="w-full" placeholder="نام محصول را وارد کنید..." oninput="applyFilters()">
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-green-900 mb-2">دسته‌بندی</label>
+            <select id="categoryFilter" onchange="applyFilters()">
+              <option value="all">همه</option>
+              <option value="pots">گلدان‌ها</option>
+              <option value="indoor">گل‌های آپارتمانی</option>
+              <option value="outdoor">گل‌های فضای سبز</option>
+              <option value="seeds">بذرها</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-green-900 mb-2">نوع گیاه</label>
+            <select id="plantTypeFilter" onchange="applyFilters()">
+              <option value="all">همه</option>
+              <option value="low-light">نور کم</option>
+              <option value="low-water">آبیاری کم</option>
+              <option value="flowering">گل‌دار</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-green-900 mb-2">مرتب‌سازی</label>
+            <select id="sortFilter" onchange="applyFilters()">
+              <option value="default">پیش‌فرض</option>
+              <option value="price-asc">قیمت: کم به زیاد</option>
+              <option value="price-desc">قیمت: زیاد به کم</option>
+              <option value="popularity">محبوبیت</option>
+            </select>
+          </div>
+        </div>
+        <div class="mt-6">
+          <label class="block text-lg font-semibold text-green-900 mb-2">محدوده قیمت (تومان)</label>
+          <div class="range-slider">
+            <div class="range-fill" style="width: 100%; left: 0;"></div>
+            <input type="range" min="0" max="1000000" value="0" id="minPrice" oninput="updatePriceRange()">
+            <input type="range" min="0" max="1000000" value="1000000" id="maxPrice" oninput="updatePriceRange()">
+          </div>
+          <div class="flex justify-between text-gray-700">
+            <span id="minPriceValue">0</span>
+            <span id="maxPriceValue">1,000,000</span>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center">
+          <input type="checkbox" id="discountFilter" onchange="applyFilters()" class="mr-2">
+          <label class="text-lg font-semibold text-green-900">فقط تخفیف‌دار</label>
+        </div>
+        <button onclick="resetFilters()" class="glow-button text-green-900 px-8 py-3 rounded-full font-semibold mt-6">ریست فیلتر</button>
+      </div>
+      <div id="productsModalContent" class="grid grid-cols-1 md:grid-cols-3 gap-12"></div>
+    </div>
+  </div>
+
+  <!-- Seeds Subcategories Modal -->
+  <div id="seedsSubcategoriesModal" class="fixed inset-0 bg-black bg-opacity-95 hidden flex items-center justify-center z-50">
+    <div class="products-modal p-16 rounded-3xl max-w-6xl w-full shadow-2xl relative">
+      <button onclick="closeSeedsModal()" class="back-arrow">
+        <svg class="w-8 h-8 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <h3 class="text-5xl font-bold mb-16 text-green-900" style="font-family: 'Playfair Display', serif;">بذرها</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showSubCategory('flower-seeds')">
+          <img src="https://images.unsplash.com/photo-1617055453186-314ff4ebedee?q=80&w=2070&auto=format&fit=crop" alt="بذر گل‌ها" class="w-full h-56 object-cover" loading="lazy">
+          <div class="p-10">
+            <h3 class="text-3xl font-bold text-green-900">بذر گل‌ها</h3>
+            <p class="text-gray-700">بذر گل‌های زینتی و رنگارنگ</p>
+          </div>
+        </div>
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showSubCategory('vegetable-seeds')">
+          <img src="https://images.unsplash.com/photo-1598032895397-b947244972c2?q=80&w=2070&auto=format&fit=crop" alt="بذر سبزی‌ها" class="w-full h-56 object-cover" loading="lazy">
+          <div class="p-10">
+            <h3 class="text-3xl font-bold text-green-900">بذر سبزی‌ها</h3>
+            <p class="text-gray-700">بذر سبزیجات تازه و ارگانیک</p>
+          </div>
+        </div>
+        <div class="category-card rounded-3xl overflow-hidden cursor-pointer" onclick="showSubCategory('edible-seeds')">
+          <img src="https://images.unsplash.com/photo-1603046891887-1533e8e0b49d?q=80&w=2070&auto=format&fit=crop" alt="بذر خوراکی‌ها" class="w-full h-56 object-cover" loading="lazy">
+          <div class="p-10">
+            <h3 class="text-3xl font-bold text-green-900">بذر خوراکی‌ها</h3>
+            <p class="text-gray-700">بذر میوه‌ها و گیاهان خوراکی</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Details Modal -->
+  <div id="productModal" class="fixed inset-0 bg-black bg-opacity-95 hidden flex items-center justify-center z-50">
+    <div class="products-modal p-16 rounded-3xl max-w-lg w-full shadow-2xl relative">
+      <button onclick="closeModal()" class="back-arrow">
+        <svg class="w-8 h-8 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <h3 id="modalTitle" class="text-4xl font-bold mb-10 text-green-900" style="font-family: 'Playfair Display', serif;"></h3>
+      <img id="modalImage" src="" alt="" class="w-full h-96 object-cover rounded-xl mb-10" loading="lazy">
+      <p id="modalDescription" class="mb-12 text-gray-700 text-xl"></p>
+      <button id="addToCartButton" class="glow-button text-green-900 px-10 py-5 rounded-full font-semibold w-full">افزودن به سبد خرید</button>
+    </div>
+  </div>
+
+  <!-- Cart Modal -->
+  <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-95 hidden flex items-center justify-center z-50">
+    <div class="cart-modal p-16 rounded-3xl max-w-lg w-full shadow-2xl relative">
+      <button onclick="closeCart()" class="back-arrow">
+        <svg class="w-8 h-8 text-green-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      </button>
+      <h3 class="text-4xl font-bold mb-10 text-green-900" style="font-family: 'Playfair Display', serif;">سبد خرید</h3>
+      <div id="cartItems" class="mb-10"></div>
+      <p class="text-xl font-semibold text-green-900 mb-6">جمع کل: <span id="cartTotal">0</span> تومان</p>
+      <button onclick="alert('اتصال به درگاه پرداخت...')" class="glow-button text-green-900 px-10 py-5 rounded-full font-semibold w-full">پرداخت</button>
+    </div>
+  </div>
+
+  <!-- Chat Modal -->
+  <div class="chat-icon" onclick="toggleChat()">
+    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+  </div>
+  <div id="chatModal" class="chat-modal">
+    <h3 class="text-2xl font-bold text-green-900 mb-4">پشتیبانی دیان</h3>
+    <div id="chatMessages" class="h-64 overflow-y-auto mb-4 p-4 bg-gray-100 rounded-xl flex flex-col"></div>
+    <input type="text" id="chatInput" class="w-full p-3 rounded-xl border border-gray-300 focus:outline-none focus:border-green-500 mb-4" placeholder="پیام خود را بنویسید...">
+    <button onclick="sendMessage()" class="glow-button text-green-900 px-6 py-3 rounded-full font-semibold w-full">ارسال</button>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
